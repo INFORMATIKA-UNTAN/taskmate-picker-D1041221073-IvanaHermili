@@ -1,6 +1,12 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Task } from '../data/dummyTasks';
 
-export default function TaskItem({ task, onToggle }) {
+type TaskItemProps = {
+  task: Task;
+  onToggle?: (task: Task) => void;
+};
+
+export default function TaskItem({ task, onToggle }: TaskItemProps) {
   const isDone = task.status === 'done';
 
   return (

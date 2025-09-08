@@ -1,4 +1,13 @@
-export const dummyTasks = [
+export interface Task {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  deadline: string;
+  status: 'pending' | 'done';
+}
+
+export const dummyTasks: Task[] = [
   {
     id: '1',
     title: 'Buat wireframe TaskMate',

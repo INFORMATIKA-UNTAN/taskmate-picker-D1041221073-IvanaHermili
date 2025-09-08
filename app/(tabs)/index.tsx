@@ -1,31 +1,44 @@
-import { StyleSheet } from 'react-native';
+import { useState } from 'react';
+import { SafeAreaView, StyleSheet, Text, FlatList } from 'react-native';
+import TaskItem from '../src/components/TaskItem';
+import { dummyTasks } from '../src/data/dummyTasks';
 
-import EditScreenInfo from '@/components/EditScreenInfo';
-import { Text, View } from '@/components/Themed';
+export default function HomeScreen() {
+  const [tasks, setTasks] = useState(dummyTasks);
 
-export default function TabOneScreen() {
+  const handleToggle = (task) => {
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === task.id
+          ? { ...t, status: t.status === 'done' ? 'pending' : 'done' }
+          : t
+      )
+    );
+  };
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Tab One</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="app/(tabs)/index.tsx" />
-    </View>
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.header}>TaskMate – Daftar Tugas</Text>
+      <FlatList
+        data={tasks}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={{ padding: 16 }}
+        renderItem={({ item }) => (
+          <TaskItem task={item} onToggle={handleToggle} />
+        )}
+      />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#f8fafc',
   },
-  title: {
+  header: {
     fontSize: 20,
-    fontWeight: 'bold',
-  },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
+    fontWeight: '700',
+    padding: 16,
   },
 });
