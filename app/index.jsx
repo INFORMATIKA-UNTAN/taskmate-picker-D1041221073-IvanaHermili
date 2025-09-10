@@ -95,4 +95,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#334155',
   },
+  filterText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#334155',
+  },
+  filterTextActive: {
+    color: "#ffff",
+  },
 });
