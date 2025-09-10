@@ -92,4 +92,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 12,
   },
+
+  //Badge kategori
+  catBadge: {
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    marginLeft: 8,
+  },
 });
