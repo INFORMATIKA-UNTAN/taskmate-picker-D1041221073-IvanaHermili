@@ -3,6 +3,19 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 export default function TaskItem({ task, onToggle }) {
   const isDone = task.status === 'done';
 
+  const getCategoryStyle = (category) => {
+    switch (category) {
+      case 'Mobile':
+        return styles.catMobile;
+      case 'RPL':
+        return styles.catRPL;
+      case 'IoT':
+        return styles.catIoT;
+      default:
+        return styles.catDefault;
+    }
+  };
+
   return (
     <TouchableOpacity onPress={() => onToggle?.(task)} activeOpacity={0.7}>
       <View style={[styles.card, isDone && styles.cardDone]}>
@@ -23,6 +36,10 @@ export default function TaskItem({ task, onToggle }) {
           ]}
         >
           <Text style={styles.badgeText}>{isDone ? 'Done' : 'Todo'}</Text>
+        </View>
+
+        <View style={[styles.catBadge, getCategoryStyle(task.category)]}>
+          <Text style={styles.catText}>{task.category}</Text>
         </View>
       </View>
     </TouchableOpacity>
