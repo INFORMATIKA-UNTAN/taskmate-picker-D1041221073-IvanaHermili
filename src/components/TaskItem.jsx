@@ -100,4 +100,21 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginLeft: 8,
   },
+  catText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#ffff',
+  },
+  catMobile: {
+    backgroundColor: '#10b981',
+  },
+  catIoT: {
+    backgroundColor: '#f59e0b',
+  },
+  catRPL: {
+    backgroundColor: '#94a3b8',
+  },
+  catDefault: {
+    backgroundColor: '#94a3b8',
+  },
 });
