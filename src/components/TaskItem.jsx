@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f59e0b',
   },
   catRPL: {
-    backgroundColor: '#94a3b8',
+    backgroundColor: '#3b82f6',
   },
   catDefault: {
     backgroundColor: '#94a3b8',
