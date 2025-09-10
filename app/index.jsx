@@ -87,4 +87,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#e2e8f0',
   },
+  filterBtnActive: {
+    backgroundColor: '#3b82f6',
+  },
+  filterText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#334155',
+  },
 });
