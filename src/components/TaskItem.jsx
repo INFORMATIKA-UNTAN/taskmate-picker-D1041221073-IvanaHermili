@@ -1,6 +1,6 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Button } from 'react-native';
 
-export default function TaskItem({ task, onToggle }) {
+export default function TaskItem({ task, onToggle, onDelete }) {
   const isDone = task.status === 'done';
 
   const getCategoryStyle = (category) => {
@@ -17,32 +17,37 @@ export default function TaskItem({ task, onToggle }) {
   };
 
   return (
-    <TouchableOpacity onPress={() => onToggle?.(task)} activeOpacity={0.7}>
-      <View style={[styles.card, isDone && styles.cardDone]}>
-        <View style={{ flex: 1 }}>
-          <Text style={[styles.title, isDone && styles.strike]}>
-            {task.title}
-          </Text>
+    <View style={[styles.card, isDone && styles.cardDone]}>
+      {/* Bagian teks bisa diklik → toggle status */}
+      <TouchableOpacity
+        onPress={() => onToggle?.(task)}
+        style={{ flex: 1 }}
+        activeOpacity={0.7}
+      >
+        <Text style={[styles.title, isDone && styles.strike]}>
+          {task.title}
+        </Text>
+        {!!task.description && (
           <Text style={styles.desc}>{task.description}</Text>
-          <Text style={styles.meta}>
-            {task.category} • Due {task.deadline}
-          </Text>
-        </View>
+        )}
+        <Text style={styles.meta}>
+          {task.category} • Due {task.deadline}
+        </Text>
+      </TouchableOpacity>
 
-        <View
-          style={[
-            styles.badge,
-            isDone ? styles.badgeDone : styles.badgePending,
-          ]}
-        >
-          <Text style={styles.badgeText}>{isDone ? 'Done' : 'Todo'}</Text>
-        </View>
-
-        <View style={[styles.catBadge, getCategoryStyle(task.category)]}>
-          <Text style={styles.catText}>{task.category}</Text>
-        </View>
+      {/* Status badge */}
+      <View style={[styles.badge, isDone ? styles.badgeDone : styles.badgePending]}>
+        <Text style={styles.badgeText}>{isDone ? 'Done' : 'Todo'}</Text>
       </View>
-    </TouchableOpacity>
+
+      {/* Badge kategori */}
+      <View style={[styles.catBadge, getCategoryStyle(task.category)]}>
+        <Text style={styles.catText}>{task.category}</Text>
+      </View>
+
+      {/* Tombol hapus */}
+      <Button title="🗑" onPress={() => onDelete?.(task)} />
+    </View>
   );
 }
 
@@ -55,6 +60,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     elevation: 1,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
   },
   cardDone: {
     backgroundColor: '#f1f5f9',
@@ -63,6 +71,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 4,
+    color: '#0f172a',
   },
   strike: {
     textDecorationLine: 'line-through',
@@ -93,7 +102,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
 
-  //Badge kategori
+  // Badge kategori
   catBadge: {
     paddingVertical: 6,
     paddingHorizontal: 10,
@@ -103,7 +112,7 @@ const styles = StyleSheet.create({
   catText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#ffff',
+    color: '#fff',
   },
   catMobile: {
     backgroundColor: '#10b981',

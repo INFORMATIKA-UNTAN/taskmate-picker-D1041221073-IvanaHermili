@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -9,49 +9,64 @@ import {
 } from 'react-native';
 
 import TaskItem from '../src/components/TaskItem';
-import { dummyTasks } from '../src/data/dummyTasks';
+import { loadTasks, saveTasks } from '../src/storage/taskStorage';
 
-export default function HomeScreen() {
-  const [tasks, setTasks] = useState(dummyTasks);
-  const [filter, setFilter] = useState('All'); // All | Todo | Done
+export default function Home() {
+  const [tasks, setTasks] = useState([]);
+  const [filter, setFilter] = useState('All'); // All | Todo | Pending | Done
 
-  const handleToggle = (task) => {
-    setTasks((prev) =>
-      prev.map((t) =>
-        t.id === task.id
-          ? { ...t, status: t.status === 'done' ? 'pending' : 'done' }
-          : t
-      )
+  // Load data dari AsyncStorage saat pertama kali render
+  useEffect(() => {
+    (async () => {
+      const data = await loadTasks();
+      setTasks(Array.isArray(data) ? data : []);
+    })();
+  }, []);
+
+  // Fungsi untuk toggle status tugas
+  const handleToggle = async (task) => {
+    const updated = tasks.map((t) =>
+      t.id === task.id
+        ? { ...t, status: t.status === 'done' ? 'pending' : 'done' }
+        : t
     );
+    setTasks(updated);
+    await saveTasks(updated);
   };
 
+  // Fungsi untuk menghapus tugas
+  const handleDelete = async (task) => {
+    const updated = tasks.filter((t) => t.id !== task.id);
+    setTasks(updated);
+    await saveTasks(updated);
+  };
+
+  // Filter tugas sesuai pilihan
   const filteredTasks =
     filter === 'All'
       ? tasks
-      : tasks.filter((t) =>
-          filter === 'Done' ? t.status === 'done' : t.status !== 'done'
-        );
+      : tasks.filter((t) => {
+          if (filter === 'Todo') return t.status !== 'done';
+          if (filter === 'Pending') return t.status === 'pending';
+          if (filter === 'Done') return t.status === 'done';
+          return true;
+        });
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Judul Halaman */}
       <Text style={styles.header}>TaskMate – Daftar Tugas</Text>
 
-      {/* Filter Buttons */}
+      {/* Tombol Filter */}
       <View style={styles.filterRow}>
-        {['All', 'Todo', 'Done'].map((f) => (
+        {['All', 'Todo', 'Pending', 'Done'].map((f) => (
           <TouchableOpacity
             key={f}
-            style={[
-              styles.filterBtn,
-              filter === f && styles.filterBtnActive,
-            ]}
+            style={[styles.filterBtn, filter === f && styles.filterBtnActive]}
             onPress={() => setFilter(f)}
           >
             <Text
-              style={[
-                styles.filterText,
-                filter === f && styles.filterTextActive,
-              ]}
+              style={[styles.filterText, filter === f && styles.filterTextActive]}
             >
               {f}
             </Text>
@@ -59,19 +74,27 @@ export default function HomeScreen() {
         ))}
       </View>
 
-      {/* Task List */}
+      {/* Daftar Tugas */}
       <FlatList
         data={filteredTasks}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ padding: 16 }}
         renderItem={({ item }) => (
-          <TaskItem task={item} onToggle={handleToggle} />
+          <TaskItem
+            task={item}
+            onToggle={handleToggle}
+            onDelete={handleDelete}
+          />
         )}
+        ListEmptyComponent={
+          <Text style={{ textAlign: 'center' }}>Tidak ada tugas</Text>
+        }
       />
     </SafeAreaView>
   );
 }
 
+// Style
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' },
   header: { fontSize: 20, fontWeight: '700', padding: 16 },
@@ -95,12 +118,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#334155',
   },
-  filterText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#334155',
-  },
   filterTextActive: {
-    color: "#ffff",
+    color: '#ffffff',
   },
 });
