@@ -1,4 +1,6 @@
-import { View, Text, StyleSheet, TouchableOpacity, Button } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons'; // ✅ biar tong sampah pakai ikon
+
 import { colorOfName } from '../constants/categories';
 import { colorOfPriority } from '../constants/priorities';
 
@@ -13,20 +15,19 @@ export default function TaskItem({ task, categories, onToggle, onDelete }) {
   if (task.priority === 'Medium') prioBg = '#fef9c3'; // kuning muda
   if (task.priority === 'Low') prioBg = '#e2e8f0';    // abu-abu muda
 
-  // Hitung deadline reminder
+  // 🔥 Deadline reminder
   const today = new Date().toISOString().slice(0, 10);
   let deadlineText = null;
   let deadlineStyle = styles.deadline;
+
   if (task.deadline) {
     if (task.deadline < today) {
       deadlineText = 'Overdue';
       deadlineStyle = [styles.deadline, styles.overdue];
     } else {
-      const diff =
-        Math.ceil(
-          (new Date(task.deadline) - new Date(today)) /
-            (1000 * 60 * 60 * 24)
-        );
+      const diff = Math.ceil(
+        (new Date(task.deadline) - new Date(today)) / (1000 * 60 * 60 * 24)
+      );
       deadlineText = `Sisa ${diff} hari`;
     }
   }
@@ -39,20 +40,23 @@ export default function TaskItem({ task, categories, onToggle, onDelete }) {
         isDone && styles.cardDone,
       ]}
     >
-      {/* [AKSI] Ketuk untuk toggle status Done/Pending */}
+      {/* Toggle Done/Pending */}
       <TouchableOpacity onPress={() => onToggle?.(task)} style={{ flex: 1 }}>
         <Text style={[styles.title, isDone && styles.strike]}>
           {task.title}
         </Text>
 
+        {/* Deadline reminder */}
         {!!task.deadline && (
           <Text style={deadlineStyle}>Deadline: {deadlineText}</Text>
         )}
+
+        {/* Deskripsi */}
         {!!task.description && (
           <Text style={styles.desc}>{task.description}</Text>
         )}
 
-        {/* [BADGE] kategori & prioritas */}
+        {/* Badge kategori & prioritas */}
         <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
           <View
             style={[
@@ -77,9 +81,9 @@ export default function TaskItem({ task, categories, onToggle, onDelete }) {
         </View>
       </TouchableOpacity>
 
-      {/* [AKSI] Hapus task */}
-      <TouchableOpacity style={styles.deleteBtn} onPress={() => onDelete?.(task)}>
-        <Text style={styles.deleteIcon}>🗑</Text>
+      {/* Tombol hapus */}
+      <TouchableOpacity style={styles.deleteBtn} onPress={() => onDelete?.(task)}> 
+        <Text style={styles.deleteIcon}>🗑</Text> 
       </TouchableOpacity>
     </View>
   );
@@ -89,7 +93,6 @@ const styles = StyleSheet.create({
   card: {
     padding: 14,
     borderRadius: 16,
-    backgroundColor: '#fff',
     marginBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
@@ -100,7 +103,6 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 3 },
     elevation: 2,
-    alignSelf: 'stretch',   // ini biar full width
   },
   cardDone: {
     backgroundColor: '#f8fafc',
@@ -120,6 +122,10 @@ const styles = StyleSheet.create({
     color: '#334155',
     marginBottom: 4,
   },
+  overdue: {
+    color: '#dc2626', // merah
+    fontWeight: '700',
+  },
   desc: {
     color: '#475569',
   },
@@ -134,33 +140,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
   },
-  progressWrap: {
-    marginTop: 10,
-    height: 8,
-    backgroundColor: '#e5e7eb',
-    borderRadius: 999,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  progressBar: {
-    height: '100%',
-    backgroundColor: '#0f172a',
-  },
-  progressText: {
-    position: 'absolute',
-    right: 8,
-    top: -18,
-    fontSize: 12,
-    color: '#334155',
-    fontWeight: '600',
-  },
-  deleteBtn: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  deleteIcon:{
-    fontSize: 30,
-    color: 'red',
-    marginRight: 10,
+  deleteBtn: { 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+  }, 
+  deleteIcon:{ 
+    fontSize: 30, 
+    color: 'red', 
+    marginRight: 10, 
   },
 });
