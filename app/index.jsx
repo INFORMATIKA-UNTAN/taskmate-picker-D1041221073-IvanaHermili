@@ -65,9 +65,16 @@ export default function Home() {
             style={[styles.filterBtn, filter === f && styles.filterBtnActive]}
             onPress={() => setFilter(f)}
           >
-            <Text
+            {/* <Text
               style={[styles.filterText, filter === f && styles.filterTextActive]}
-            >
+            style={[
+              styles.filterBtn,
+              filter === f && styles.filterBtnActive,
+            ]}
+            onPress={() => setFilter(f)}
+          > */}
+            <Text
+              style={[styles.filterText, filter === f && styles.filterTextActive]}>
               {f}
             </Text>
           </TouchableOpacity>
