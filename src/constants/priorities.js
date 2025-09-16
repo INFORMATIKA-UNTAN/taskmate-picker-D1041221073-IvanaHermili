@@ -2,8 +2,8 @@
 
 export const PRIORITY_META = [
     {key:'High', color: '#f15555ff', weight: 3},
-    {key:'Medium', color: '#f5cc64ff', weight: 2},
-    {key:'Low', color: '#a5f66cff', weight: 1},
+    {key:'Medium', color: '#e7f564ff', weight: 2},
+    {key:'Low', color: '#a2a4a2ff', weight: 1},
 ];
 
 //daftar label (untuk picker/chip)
