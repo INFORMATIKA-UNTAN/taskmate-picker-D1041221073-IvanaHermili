@@ -1,16 +1,14 @@
-// Import React hook
-import { useState } from 'react';
-// Komponen UI bawaan dari React Native
+import { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert, Platform, ScrollView, KeyboardAvoidingView } from 'react-native';
-// Import Picker
 import { Picker } from '@react-native-picker/picker';
-// Import helper untuk menyimpan dan memuat data dari AsyncStorage
 import { loadTasks, saveTasks } from '../src/storage/taskStorage';
-// Import UUID untuk generate ID unik
 import 'react-native-get-random-values'; // Diperlukan untuk uuid
 import { v4 as uuidv4 } from 'uuid';
-// Import Expo Router untuk navigasi
 import { useRouter } from 'expo-router';
+import { loadCategories, saveCategories } from '../src/storage/categoryStorage';
+import { pickColor } from '../src/constants/categories';
+import { PRIORITIES } from '../src/constants/priorities';
+import AddCategoryModal from '../src/components/AddCategoryModal';
 
 export default function AddTaskScreen() {
   const router = useRouter(); // Hook untuk navigasi
