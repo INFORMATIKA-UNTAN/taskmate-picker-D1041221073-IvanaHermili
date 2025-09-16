@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert, Platform, ScrollView, KeyboardAvoidingView } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { loadTasks, saveTasks } from '../src/storage/taskStorage';
-import 'react-native-get-random-values'; // Diperlukan untuk uuid
+import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 import { useRouter } from 'expo-router';
 import { loadCategories, saveCategories } from '../src/storage/categoryStorage';
@@ -11,14 +11,26 @@ import { PRIORITIES } from '../src/constants/priorities';
 import AddCategoryModal from '../src/components/AddCategoryModal';
 
 export default function AddTaskScreen() {
-  const router = useRouter(); // Hook untuk navigasi
+  const router = useRouter();
+
+  // States
   const [title, setTitle] = useState('');
   const [desc, setDesc] = useState('');
-  const [category, setCategory] = useState('Umum');
+  const [deadline, setDeadline] = useState('2025-09-30');
 
-  // Fungsi yang dijalankan saat tombol "Simpan Tugas" ditekan
+  const [categories, setCategories] = useState([]);
+  const [category, setCategory] = useState('Umum');
+  const [showCatModal, setShowCatModal] = useState(false);
+
+  const [priority, setPriority] = useState('Low');
+
+  // Load categories dari storage
+  useEffect(() => {
+    (async () => setCategories(await loadCategories()))();
+  }, []);
+
+  // Submit task baru
   const handleAddTask = async () => {
-    // Validasi: Judul tidak boleh kosong
     if (!title.trim()) {
       Alert.alert('Gagal', 'Judul tugas tidak boleh kosong!');
       return;
@@ -30,18 +42,39 @@ export default function AddTaskScreen() {
         id: uuidv4(),
         title: title.trim(),
         description: desc.trim(),
+        deadline,
         category,
-        deadline: '2025-09-30',
-        // Status diatur ke 'pending' secara otomatis
-        status: 'pending', 
+        priority,
+        status: 'pending',
       };
-      const updatedTasks = [...existingTasks, newTask];
-      await saveTasks(updatedTasks);
+      await saveTasks([...existingTasks, newTask]);
+
+      // Reset form
+      setTitle('');
+      setDesc('');
+      setDeadline('2025-09-30');
+      setCategory('Umum');
+      setPriority('Low');
+
       router.replace('/');
     } catch (error) {
       console.error(error);
       Alert.alert('Error', 'Gagal menyimpan tugas.');
     }
+  };
+
+  // Submit kategori baru dari modal
+  const onSubmitCategory = async ({ key, color }) => {
+    if (categories.some(c => c.key.toLowerCase() === key.toLowerCase())) {
+      Alert.alert('Info', 'Kategori sudah ada.');
+      setShowCatModal(false);
+      return;
+    }
+    const next = [...categories, { key, color: color || pickColor(categories.length) }];
+    setCategories(next);
+    await saveCategories(next);
+    setCategory(key); // otomatis pilih kategori baru
+    setShowCatModal(false);
   };
 
   return (
@@ -72,25 +105,54 @@ export default function AddTaskScreen() {
           numberOfLines={4}
         />
 
+        <Text style={styles.label}>Deadline (YYYY-MM-DD)</Text>
+        <TextInput
+          style={styles.input}
+          value={deadline}
+          onChangeText={setDeadline}
+          placeholder="2025-09-30"
+        />
+
         <Text style={styles.label}>Kategori</Text>
-        <View>
-            <Picker 
-                selectedValue={category}
-                onValueChange={(itemValue) => setCategory(itemValue)}
-            >
-                <Picker.Item label="Umum" value="Umum"></Picker.Item>
-            </Picker>
+        <View style={styles.pickerWrap}>
+          <Picker
+            style={{ height: 40 }} // atur tinggi Picker
+            selectedValue={category}
+            onValueChange={(val) => {
+              if (val === '__ADD__') { setShowCatModal(true); return; }
+              setCategory(val);
+            }}
+          >
+            {categories.map(k => <Picker.Item key={k.key} label={k.key} value={k.key} />)}
+            <Picker.Item label="＋ Tambah kategori…" value="__ADD__" />
+          </Picker>
+        </View>
+
+        <Text style={styles.label}>Prioritas</Text>
+        <View style={styles.pickerWrap}>
+          <Picker
+            style={{ height: 40 }}
+            selectedValue={priority} 
+            onValueChange={setPriority}>
+            {PRIORITIES.map(p => <Picker.Item key={p} label={p} value={p} />)}
+          </Picker>
         </View>
 
         <View style={styles.buttonContainer}>
           <Button title="Simpan Tugas" onPress={handleAddTask} />
         </View>
+
+        <AddCategoryModal
+          visible={showCatModal}
+          onClose={() => setShowCatModal(false)}
+          onSubmit={onSubmitCategory}
+          suggestedColor={pickColor(categories.length)}
+        />
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
-// Stylesheet untuk halaman
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -121,9 +183,17 @@ const styles = StyleSheet.create({
   },
   textArea: {
     height: 100,
-    textAlignVertical: 'top', // Agar teks dimulai dari atas pada Android
+    textAlignVertical: 'top',
+  },
+  pickerWrap: {
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderRadius: 8,
+    marginTop: 6,
+    backgroundColor: '#fff',
+    justifyContent: 'center', // teks berada di tengah
   },
   buttonContainer: {
-    marginTop: 24, // Memberi jarak antara input terakhir dan tombol
+    marginTop: 24,
   }
 });
