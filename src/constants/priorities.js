@@ -1,22 +1,20 @@
-//definisi prioritas + warna + bobot sorting
-
 export const PRIORITY_META = [
-    {key:'High', color: '#f15555ff', weight: 3},
-    {key:'Medium', color: '#e7f564ff', weight: 2},
-    {key:'Low', color: '#a2a4a2ff', weight: 1},
+  { key: 'High', color: '#ef4444', weight: 3 }, // merah
+  { key: 'Medium', color: '#f59e0b', weight: 2 }, // kuning
+  { key: 'Low', color: '#64748b', weight: 1 }, // abu-abu
 ];
 
-//daftar label (untuk picker/chip)
+// [BARU] Daftar label (untuk Picker/Chip)
 export const PRIORITIES = PRIORITY_META.map(p => p.key);
 
-//ambil warna prioritas
-export function colorOfPriority(name){
-    const f = PRIORITY_META.find(p => p.key === name);
-    return f ? f.color : '#64748b';
+// [BARU] Ambil warna prioritas
+export function colorOfPriority(name) {
+  const f = PRIORITY_META.find(p => p.key === name);
+  return f ? f.color : '#64748b';
 }
 
-//ambil bobot untuk sorting (high > medium > low)
-export function weightOfPriority(name){
-    const f = PRIORITY_META.find(p => p.key === name);
-    return f ? f.weight : 1;
+// [BARU] Ambil bobot untuk sorting (High > Medium > Low)
+export function weightOfPriority(name) {
+  const f = PRIORITY_META.find(p => p.key === name);
+  return f ? f.weight : 1;
 }
