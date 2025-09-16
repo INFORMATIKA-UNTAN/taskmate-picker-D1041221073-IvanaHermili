@@ -45,8 +45,11 @@ export default function TaskItem({ task, onToggle, onDelete }) {
         <Text style={styles.catText}>{task.category}</Text>
       </View>
 
-      {/* Tombol hapus */}
-      <Button title="🗑" onPress={() => onDelete?.(task)} />
+      {/* Tombol hapus
+      <Button title="🗑" onPress={() => onDelete?.(task)} /> */}
+      <TouchableOpacity style={styles.deleteBtn} onPress={() => onDelete?.(task)}>
+        <Text style={styles.deleteIcon}>🗑</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -101,6 +104,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 12,
   },
+  deleteBtn: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteIcon:{
+    fontSize: 30,
+  },
 
   // Badge kategori
   catBadge: {
@@ -108,6 +118,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: 8,
     marginLeft: 8,
+    marginRight: 8,
   },
   catText: {
     fontSize: 12,
