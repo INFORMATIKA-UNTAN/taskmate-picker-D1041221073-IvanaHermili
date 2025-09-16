@@ -4,44 +4,80 @@ import { colorOfPriority } from '../constants/priorities';
 
 export default function TaskItem({ task, categories, onToggle, onDelete }) {
   const isDone = task.status === 'done';
-  // [UPDATE] Warna badge ambil dari util sesuai kategori & prioritas
   const catColor = colorOfName(task.category ?? 'Umum', categories);
   const prioColor = colorOfPriority(task.priority ?? 'Low');
 
-  // [OPSIONAL] progress 0-100 → jika tidak ada, tidak dirender
-  const pct = typeof task.progress === 'number' ? Math.max(0, Math.min(100,
-  task.progress)) : null;
+  // Tentukan warna background card berdasar prioritas
+  let prioBg = '#f1f5f9'; // default abu-abu muda
+  if (task.priority === 'High') prioBg = '#fee2e2';   // merah muda
+  if (task.priority === 'Medium') prioBg = '#fef9c3'; // kuning muda
+  if (task.priority === 'Low') prioBg = '#e2e8f0';    // abu-abu muda
+
+  // Hitung deadline reminder
+  const today = new Date().toISOString().slice(0, 10);
+  let deadlineText = null;
+  let deadlineStyle = styles.deadline;
+  if (task.deadline) {
+    if (task.deadline < today) {
+      deadlineText = 'Overdue';
+      deadlineStyle = [styles.deadline, styles.overdue];
+    } else {
+      const diff =
+        Math.ceil(
+          (new Date(task.deadline) - new Date(today)) /
+            (1000 * 60 * 60 * 24)
+        );
+      deadlineText = `Sisa ${diff} hari`;
+    }
+  }
 
   return (
-    <View style={[styles.card, isDone && styles.cardDone]}>
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: prioBg },
+        isDone && styles.cardDone,
+      ]}
+    >
       {/* [AKSI] Ketuk untuk toggle status Done/Pending */}
-      <TouchableOpacity onPress={() => onToggle?.(task)} style={{ flex: 1 }} activeOpacity={0.7}>
-        <Text style={[styles.title, isDone && styles.strike]}>{task.title}</Text>
-        
-        {!!task.deadline && <Text style={styles.deadline}>Deadline: {task.deadline}</Text>}
-        {!!task.description && <Text style={styles.desc}>{task.description}</Text>}
+      <TouchableOpacity onPress={() => onToggle?.(task)} style={{ flex: 1 }}>
+        <Text style={[styles.title, isDone && styles.strike]}>
+          {task.title}
+        </Text>
 
-        {/* [update] badge kategori & prioritas */}
-        <View style={{flexDirection: 'row', gap: 8, marginTop: 8}}>
-          <View style={[styles.badge, { borderColor: catColor, backgroundColor: `${catColor}20`}]}>
-            <Text style={[styles.badgeText, {color: prioColor}]}>{task.category ?? 'Umum'}</Text>
+        {!!task.deadline && (
+          <Text style={deadlineStyle}>Deadline: {deadlineText}</Text>
+        )}
+        {!!task.description && (
+          <Text style={styles.desc}>{task.description}</Text>
+        )}
+
+        {/* [BADGE] kategori & prioritas */}
+        <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+          <View
+            style={[
+              styles.badge,
+              { borderColor: catColor, backgroundColor: `${catColor}20` },
+            ]}
+          >
+            <Text style={[styles.badgeText, { color: catColor }]}>
+              {task.category ?? 'Umum'}
+            </Text>
           </View>
-
-          <View style={[styles.badge, { borderColor: prioColor, backgroundColor: `${prioColor}20`}]}>
-            <Text style={[styles.badgeText, {color: prioColor}]}>{task.priority ?? 'Low'}</Text>
+          <View
+            style={[
+              styles.badge,
+              { borderColor: prioColor, backgroundColor: `${prioColor}20` },
+            ]}
+          >
+            <Text style={[styles.badgeText, { color: prioColor }]}>
+              {task.priority ?? 'Low'}
+            </Text>
           </View>
         </View>
-
-        {/* [opsional] progress bar tipis */}
-        {pct !== null &&(
-          <View style={styles.progressWrap}>
-            <View style={[styles.progressBar, {width: `${pct}%`}]} />
-            <Text style={styles.progressText}>{pct}%</Text>
-          </View>
-        )}
       </TouchableOpacity>
 
-      {/* [aksi] hapus task */}
+      {/* [AKSI] Hapus task */}
       <TouchableOpacity style={styles.deleteBtn} onPress={() => onDelete?.(task)}>
         <Text style={styles.deleteIcon}>🗑</Text>
       </TouchableOpacity>
@@ -59,12 +95,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    // [STYLE] Shadow lembut
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 3 },
     elevation: 2,
+    alignSelf: 'stretch',   // ini biar full width
   },
   cardDone: {
     backgroundColor: '#f8fafc',
