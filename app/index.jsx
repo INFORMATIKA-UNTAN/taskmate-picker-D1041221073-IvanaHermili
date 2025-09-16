@@ -1,106 +1,110 @@
 import { useEffect, useState, useMemo } from 'react';
-import { SafeAreaView, Text, FlatList, StyleSheet, View, Button, Alert } from 'react-native';
+import {
+  SafeAreaView,
+  Text,
+  SectionList,
+  StyleSheet,
+  View,
+  TouchableOpacity,
+} from 'react-native';
 import TaskItem from '../src/components/TaskItem';
 import FilterToolbarFancy from '../src/components/FilterToolbarFancy';
 import AddCategoryModal from '../src/components/AddCategoryModal';
-import { loadTasks, saveTasks, clearTasks } from '../src/storage/taskStorage';
+import {
+  loadTasks,
+  saveTasks,
+  clearTasks as storageClearTasks,
+} from '../src/storage/taskStorage';
 import { loadCategories, saveCategories } from '../src/storage/categoryStorage';
 import { pickColor } from '../src/constants/categories';
 import { weightOfPriority } from '../src/constants/priorities';
 
 export default function Home() {
-  // [STATE] data
   const [tasks, setTasks] = useState([]);
   const [categories, setCategories] = useState([]);
 
-  // [STATE] filter
-  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'todo' | 'done'
-  const [categoryFilter, setCategoryFilter] = useState('all'); // 'all' | 'Umum' | ...
-  const [priorityFilter, setPriorityFilter] = useState('all'); // 'all' | 'Low' | 'Medium' | 'High'
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [priorityFilter, setPriorityFilter] = useState('all');
 
-  // [STATE] modal tambah kategori di Home (opsional)
   const [showCatModal, setShowCatModal] = useState(false);
 
-  // [INIT] Muat data tugas & kategori
   useEffect(() => {
     (async () => {
-      setTasks(await loadTasks());
-      setCategories(await loadCategories());
+      const loadedTasks = await loadTasks();
+      const loadedCats = await loadCategories();
+      setTasks(loadedTasks);
+      setCategories(loadedCats);
     })();
   }, []);
 
-  // [AKSI] Toggle status Done/Pending
+  // Toggle status
   const handleToggle = async (task) => {
-    const updated = tasks.map(t =>
-      t.id === task.id ? { ...t, status: t.status === 'done' ? 'pending' : 'done' } : t
+    const updated = tasks.map((t) =>
+      t.id === task.id
+        ? { ...t, status: t.status === 'done' ? 'pending' : 'done' }
+        : t
     );
     setTasks(updated);
     await saveTasks(updated);
   };
 
-  // [AKSI] Hapus 1 tugas
+  // Delete single task
   const handleDelete = async (task) => {
-    Alert.alert('Konfirmasi', 'Hapus tugas ini?', [
-      { text: 'Batal' },
-      { text: 'Ya', onPress: async () => {
-        const updated = tasks.filter(t => t.id !== task.id);
-        setTasks(updated);
-        await saveTasks(updated);
-      }}
-    ]);
+    const updated = tasks.filter((t) => t.id !== task.id);
+    setTasks(updated);
+    await saveTasks(updated);
   };
 
-  // [INFO] Toolbar: Done/Total & Overdue
-  const doneCount = useMemo(() => tasks.filter(t => t.status === 'done').length, [tasks]);
-  const today = useMemo(() => new Date().toISOString().slice(0,10), []);
-  const overdueCount = useMemo(() =>
-    tasks.filter(t => t.deadline && t.deadline < today && t.status !== 'done').length,
-  [tasks, today]);
+  // Counts
+  const doneCount = useMemo(
+    () => tasks.filter((t) => t.status === 'done').length,
+    [tasks]
+  );
+  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const overdueCount = useMemo(
+    () =>
+      tasks.filter(
+        (t) => t.deadline && t.deadline < today && t.status !== 'done'
+      ).length,
+    [tasks, today]
+  );
 
-  // [AKSI] Clear
-  const handleClearDone = () => {
-    if (!doneCount) { Alert.alert('Info', 'Tidak ada tugas Done.'); return; }
-    Alert.alert('Hapus Tugas Selesai', `Yakin hapus ${doneCount} tugas selesai?`, [
-      { text:'Batal' },
-      { text:'Hapus', style:'destructive', onPress: async () => {
-        const kept = tasks.filter(t => t.status !== 'done');
-        setTasks(kept);
-        await saveTasks(kept);
-      }}
-    ]);
+  // Clear done tasks (langsung, tanpa alert)
+  const handleClearDone = async () => {
+    const kept = tasks.filter((t) => t.status !== 'done');
+    setTasks(kept);
+    await saveTasks(kept);
   };
 
-  const handleClearAll = () => {
-    if (!tasks.length) { Alert.alert('Info', 'Daftar tugas kosong.'); return; }
-    Alert.alert('Konfirmasi', 'Hapus semua tugas?', [
-      { text:'Batal' },
-      { text:'Ya', onPress: async () => { setTasks([]); await clearTasks(); } }
-    ]);
+  // Clear all tasks (langsung, tanpa alert)
+  const handleClearAll = async () => {
+    setTasks([]);
+    await storageClearTasks();
   };
 
-  // [FILTER] status + kategori + prioritas
+  // Filter & sorting
   const filteredTasks = useMemo(() => {
-    return tasks.filter(t => {
+    return tasks.filter((t) => {
       const byStatus =
         statusFilter === 'all' ||
-        (statusFilter === 'todo' ? t.status !== 'done' : t.status === 'done');
-
+        (statusFilter === 'todo'
+          ? t.status !== 'done'
+          : t.status === 'done');
       const byCategory =
         categoryFilter === 'all' || (t.category ?? 'Umum') === categoryFilter;
-
       const byPriority =
-        priorityFilter === 'all' || (t.priority ?? 'Low') === priorityFilter;
-
+        priorityFilter === 'all' ||
+        (t.priority ?? 'Low') === priorityFilter;
       return byStatus && byCategory && byPriority;
     });
   }, [tasks, statusFilter, categoryFilter, priorityFilter]);
 
-  // [SORT] prioritas High→Low, lalu deadline terdekat
   const sortedTasks = useMemo(() => {
     return [...filteredTasks].sort((a, b) => {
       const wa = weightOfPriority(a.priority ?? 'Low');
       const wb = weightOfPriority(b.priority ?? 'Low');
-      if (wa !== wb) return wb - wa; // prioritas tinggi dulu
+      if (wa !== wb) return wb - wa;
       if (!a.deadline && !b.deadline) return 0;
       if (!a.deadline) return 1;
       if (!b.deadline) return -1;
@@ -108,10 +112,23 @@ export default function Home() {
     });
   }, [filteredTasks]);
 
-  // [OPSIONAL] Tambah kategori dari Home
+  const groupedTasks = useMemo(() => {
+    const map = {};
+    sortedTasks.forEach((t) => {
+      const cat = t.category ?? 'Umum';
+      if (!map[cat]) map[cat] = [];
+      map[cat].push(t);
+    });
+    return Object.keys(map).map((k) => ({ title: k, data: map[k] }));
+  }, [sortedTasks]);
+
+  // Category submit
   const handleSubmitCategory = async (cat) => {
-    if (categories.some(c => c.key.toLowerCase() === cat.key.toLowerCase())) {
-      Alert.alert('Info', 'Nama kategori sudah ada.');
+    if (
+      categories.some(
+        (c) => c.key.toLowerCase() === cat.key.toLowerCase()
+      )
+    ) {
       setShowCatModal(false);
       return;
     }
@@ -127,58 +144,86 @@ export default function Home() {
     <SafeAreaView style={styles.container}>
       <Text style={styles.header}>TaskMate – Daftar Tugas</Text>
 
-      {/* [UPDATE] Toolbar filter fancy */}
       <View style={{ paddingHorizontal: 16, gap: 12 }}>
         <FilterToolbarFancy
           categories={categories}
-          categoryFilter={categoryFilter} setCategoryFilter={setCategoryFilter}
-          statusFilter={statusFilter} setStatusFilter={setStatusFilter}
-          priorityFilter={priorityFilter} setPriorityFilter={setPriorityFilter}
+          categoryFilter={categoryFilter}
+          setCategoryFilter={setCategoryFilter}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          priorityFilter={priorityFilter}
+          setPriorityFilter={setPriorityFilter}
         />
 
-        {/* [INFO] Toolbar ringkasan */}
         <View style={styles.toolbar}>
-          <Text style={styles.toolbarText}>Done: {doneCount} / {tasks.length}</Text>
-          <Text style={[styles.toolbarText, { color: overdueCount ? '#dc2626' : '#334155' }]}>
+          <Text style={styles.toolbarText}>
+            Done: {doneCount} / {tasks.length}
+          </Text>
+          <Text
+            style={[
+              styles.toolbarText,
+              { color: overdueCount ? '#dc2626' : '#334155' },
+            ]}
+          >
             Overdue: {overdueCount}
           </Text>
-          <View style={{ flexDirection: 'row', gap: 8 }}>
-            <Button title="Clear Done" onPress={handleClearDone} disabled={!doneCount} />
-            <Button title="Clear All" onPress={handleClearAll} />
+          <View style={styles.actions}>
+            <TouchableOpacity
+              style={styles.btnClearDone}
+              onPress={handleClearDone}
+              disabled={!doneCount}
+            >
+              <Text style={styles.btnText}>CLEAR DONE</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.btnClearAll}
+              onPress={handleClearAll}
+            >
+              <Text style={styles.btnText}>CLEAR ALL</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
 
-      {/* [LIST] Tugas tersortir */}
-      <FlatList
-        data={sortedTasks}
+      <SectionList
+        sections={groupedTasks}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: 16 }}
-        renderItem={({ item }) => (
-          <TaskItem task={item} categories={categories} onToggle={handleToggle} onDelete={handleDelete} />
+        renderSectionHeader={({ section: { title } }) => (
+          <Text style={styles.sectionHeader}>{title}</Text>
         )}
+        renderItem={({ item }) => (
+          <TaskItem
+            task={item}
+            categories={categories}
+            onToggle={handleToggle}
+            onDelete={handleDelete}
+          />
+        )}
+        contentContainerStyle={{ paddingHorizontal: 6, paddingBottom: 16, marginLeft: 11 }}
         ListEmptyComponent={<Text style={{ textAlign: 'center' }}>Tidak ada tugas</Text>}
       />
-
-      {/* [OPSIONAL] Modal tambah kategori dari Home */}
+      
       <AddCategoryModal
         visible={showCatModal}
         onClose={() => setShowCatModal(false)}
         onSubmit={handleSubmitCategory}
         suggestedColor={pickColor(categories.length)}
-      />
+      />      
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8fafc' },
-  header: {
-    fontSize: 22,
-    fontWeight: '700',
+  container: { 
+    flex: 1, 
+    backgroundColor: '#f8fafc' 
+  },
+  header: { 
+    fontSize: 22, 
+    fontWeight: '700', 
     padding: 16,
-    marginBottom: 12,
-    color: '#1e293b',
+    marginBottom: 20,
+    color: '#1e293b', 
   },
   toolbar: {
     backgroundColor: '#fff',
@@ -189,5 +234,37 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     gap: 6,
   },
-  toolbarText: { fontWeight: '600', color: '#334155' },
+  toolbarText: { 
+    fontWeight: '600', 
+    color: '#334155' 
+  },
+  actions: { 
+    flexDirection: 'row', 
+    gap: 10, 
+    marginTop: 6 
+  },
+  btnClearDone: {
+    backgroundColor: '#3b82f6',
+    padding: 8,
+    borderRadius: 6,
+  },
+  btnClearAll: {
+    backgroundColor: '#ef4444',
+    padding: 8,
+    borderRadius: 6,
+  },
+  btnText: { 
+    color: '#fff', 
+    fontWeight: '600' 
+  },
+  sectionHeader: {
+    fontSize: 16,
+    fontWeight: '700',
+    backgroundColor: '#f1f5f9',
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+    marginTop: 10,
+    marginBottom: 10,
+  },
 });
