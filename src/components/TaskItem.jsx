@@ -1,6 +1,4 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; // ✅ biar tong sampah pakai ikon
-
 import { colorOfName } from '../constants/categories';
 import { colorOfPriority } from '../constants/priorities';
 
@@ -10,27 +8,36 @@ export default function TaskItem({ task, categories, onToggle, onDelete }) {
   const prioColor = colorOfPriority(task.priority ?? 'Low');
 
   // Tentukan warna background card berdasar prioritas
-  let prioBg = '#f1f5f9'; // default abu-abu muda
-  if (task.priority === 'High') prioBg = '#fee2e2';   // merah muda
-  if (task.priority === 'Medium') prioBg = '#fef9c3'; // kuning muda
-  if (task.priority === 'Low') prioBg = '#e2e8f0';    // abu-abu muda
+  let prioBg = '#f1f5f9';
+  if (task.priority === 'High') prioBg = '#fee2e2';
+  if (task.priority === 'Medium') prioBg = '#fef9c3';
+  if (task.priority === 'Low') prioBg = '#e2e8f0';
 
   // 🔥 Deadline reminder
   const today = new Date().toISOString().slice(0, 10);
-  let deadlineText = null;
+  let deadlineDiff = null;
   let deadlineStyle = styles.deadline;
 
   if (task.deadline) {
     if (task.deadline < today) {
-      deadlineText = 'Overdue';
+      deadlineDiff = 'Overdue';
       deadlineStyle = [styles.deadline, styles.overdue];
     } else {
       const diff = Math.ceil(
         (new Date(task.deadline) - new Date(today)) / (1000 * 60 * 60 * 24)
       );
-      deadlineText = `Sisa ${diff} hari`;
+      deadlineDiff = `Sisa ${diff} hari`;
     }
   }
+
+  // Format tanggal agar lebih enak dibaca
+  const formattedDeadline = task.deadline
+    ? new Date(task.deadline).toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      })
+    : null;
 
   return (
     <View
@@ -46,9 +53,14 @@ export default function TaskItem({ task, categories, onToggle, onDelete }) {
           {task.title}
         </Text>
 
-        {/* Deadline reminder */}
+        {/* Deadline */}
         {!!task.deadline && (
-          <Text style={deadlineStyle}>Deadline: {deadlineText}</Text>
+          <View style={{ marginBottom: 4 }}>
+            <Text style={styles.deadline}>
+              Deadline: {formattedDeadline}
+            </Text>
+            <Text style={deadlineStyle}>{deadlineDiff}</Text>
+          </View>
         )}
 
         {/* Deskripsi */}
@@ -82,8 +94,8 @@ export default function TaskItem({ task, categories, onToggle, onDelete }) {
       </TouchableOpacity>
 
       {/* Tombol hapus */}
-      <TouchableOpacity style={styles.deleteBtn} onPress={() => onDelete?.(task)}> 
-        <Text style={styles.deleteIcon}>🗑</Text> 
+      <TouchableOpacity style={styles.deleteBtn} onPress={() => onDelete?.(task)}>
+        <Text style={styles.deleteIcon}>🗑</Text>
       </TouchableOpacity>
     </View>
   );
@@ -120,10 +132,9 @@ const styles = StyleSheet.create({
   deadline: {
     fontSize: 12,
     color: '#334155',
-    marginBottom: 4,
   },
   overdue: {
-    color: '#dc2626', // merah
+    color: '#dc2626',
     fontWeight: '700',
   },
   desc: {
@@ -140,13 +151,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
   },
-  deleteBtn: { 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-  }, 
-  deleteIcon:{ 
-    fontSize: 30, 
-    color: 'red', 
-    marginRight: 10, 
+  deleteBtn: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteIcon: {
+    fontSize: 30,
+    color: 'red',
+    marginRight: 10,
   },
 });
