@@ -80,9 +80,11 @@ export default function FilterToolbarFancy({
   // [BARU] Opsi status/progress
   const statusOptions = [
     { label: 'All', value: 'all' },
+    { label: 'Pending', value: 'pending' },
     { label: 'In Progress', value: 'todo' },
     { label: 'Done', value: 'done' },
-  ];
+];
+
 
   // [BARU] Opsi prioritas
   const prioOptions = [
@@ -94,7 +96,14 @@ export default function FilterToolbarFancy({
 
   // [UI] Teks yang tampil pada pill
   const catValueText = categoryFilter === 'all' ? 'All' : categoryFilter;
-  const statusValueText = statusFilter === 'all' ? 'All' : (statusFilter === 'todo' ? 'In Progress' : 'Done');
+  const statusValueText =
+  statusFilter === 'all'
+    ? 'All'
+    : statusFilter === 'pending'
+    ? 'Pending'
+    : statusFilter === 'todo'
+    ? 'In Progress'
+    : 'Done';
   const prioValueText = priorityFilter === 'all' ? 'All' : priorityFilter;
 
   return (

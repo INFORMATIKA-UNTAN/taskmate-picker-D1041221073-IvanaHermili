@@ -85,18 +85,20 @@ export default function Home() {
 
   // Filter & sorting
   const filteredTasks = useMemo(() => {
-    return tasks.filter((t) => {
+  return tasks.filter((t) => {
       const byStatus =
-        statusFilter === 'all' ||
-        (statusFilter === 'todo'
-          ? t.status !== 'done'
-          : t.status === 'done');
+      statusFilter === 'all' ||
+      (statusFilter === 'pending' ? t.status === 'pending' :
+       statusFilter === 'todo' ? t.status === 'todo' :
+       statusFilter === 'done' ? t.status === 'done' : true);
+
       const byCategory =
-        categoryFilter === 'all' || (t.category ?? 'Umum') === categoryFilter;
+      categoryFilter === 'all' || (t.category ?? 'Umum') === categoryFilter;
+
       const byPriority =
-        priorityFilter === 'all' ||
-        (t.priority ?? 'Low') === priorityFilter;
-      return byStatus && byCategory && byPriority;
+      priorityFilter === 'all' || (t.priority ?? 'Low') === priorityFilter;
+
+     return byStatus && byCategory && byPriority;
     });
   }, [tasks, statusFilter, categoryFilter, priorityFilter]);
 
