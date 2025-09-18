@@ -50,8 +50,9 @@ export default function TaskItem({ task, categories, onToggle, onDelete }) {
       {/* Toggle Done/Pending */}
       <TouchableOpacity onPress={() => onToggle?.(task)} style={{ flex: 1 }}>
         <Text style={[styles.title, isDone && styles.strike]}>
-          {task.title}
+          {task.title} {task.status === 'todo' ? '(In Progress)' : ''}
         </Text>
+
 
         {/* Deadline */}
         {!!task.deadline && (
@@ -158,6 +159,7 @@ const styles = StyleSheet.create({
   deleteIcon: {
     fontSize: 30,
     color: 'red',
-    marginRight: 10,
+    // marginRight: 10,
+    padding: 6,
   },
 });

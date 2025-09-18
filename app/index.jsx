@@ -39,12 +39,19 @@ export default function Home() {
   }, []);
 
   // Toggle status
+  // index.jsx
   const handleToggle = async (task) => {
+    const nextStatus =
+      task.status === 'pending'
+        ? 'todo'
+        : task.status === 'todo'
+        ? 'done'
+        : 'pending';
+
     const updated = tasks.map((t) =>
-      t.id === task.id
-        ? { ...t, status: t.status === 'done' ? 'pending' : 'done' }
-        : t
+      t.id === task.id ? { ...t, status: nextStatus } : t
     );
+
     setTasks(updated);
     await saveTasks(updated);
   };
